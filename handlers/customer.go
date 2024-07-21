@@ -42,7 +42,6 @@ func ReadCustomers(c echo.Context) error {
 	return c.JSON(http.StatusOK, customers)
 }
 
-
 func UpdateCustomer(c echo.Context) error {
 	customerID := c.Param("id")
 	var customer models.Customer
@@ -82,5 +81,18 @@ func UpdateCustomer(c echo.Context) error {
 	return c.JSON(http.StatusOK, customer)
 }
 
+func DeleteCustomer(c echo.Context) error {
+	customerID := c.Param("id")
 
+	var customer models.Customer
+	if result := database.DB.First(&customer, customerID); result.Error != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"message": "user not found"})
+	}
 
+	if result := database.DB.Delete(&customer); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, result.Error)
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "User deleted successfuly"})
+
+}

@@ -8,8 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-
-
 func main() {
 	log.Println("main function called")
 	e := echo.New()
@@ -19,7 +17,8 @@ func main() {
 
 	e.POST("/Register", handlers.CreateCustomer)
 	e.GET("/Customers", handlers.ReadCustomers)
-	e.POST("/UpdateCustomer/:id", handlers.UpdateCustomer)
+	e.PUT("/UpdateCustomer/:id", handlers.UpdateCustomer)
+	e.DELETE("/DeleteCustomer/:id", handlers.DeleteCustomer)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
