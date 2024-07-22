@@ -32,6 +32,10 @@ func CreateCustomer(c echo.Context) error {
 	return c.JSON(http.StatusCreated, customer)
 }
 
+// func Login(c echo.Context) error {
+	
+// }
+
 func ReadCustomers(c echo.Context) error {
 	var customers []models.Customer
 	result := database.DB.Find(&customers)

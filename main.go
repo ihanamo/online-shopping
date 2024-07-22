@@ -19,6 +19,7 @@ func main() {
 	e.GET("/Customers", handlers.ReadCustomers)
 	e.PUT("/UpdateCustomer/:id", handlers.UpdateCustomer)
 	e.DELETE("/DeleteCustomer/:id", handlers.DeleteCustomer)
+	// e.POST("Login", handlers.Login)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
