@@ -5,10 +5,13 @@ import (
 	"digikala/models"
 	"log"
 	"net/http"
+	// "time"
 
+	// "github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 )
+
 
 func CreateCustomer(c echo.Context) error {
 	log.Println("Create Customer called")
@@ -32,9 +35,16 @@ func CreateCustomer(c echo.Context) error {
 	return c.JSON(http.StatusCreated, customer)
 }
 
-// func Login(c echo.Context) error {
-	
-// }
+
+func ReadCustomer(c echo.Context) error {
+	customerID := c.Param("id")
+	var customer models.Customer
+	if result := database.DB.First(&customer, customerID); result.Error != nil {
+		return c.JSON(http.StatusNotFound, result.Error)
+	}
+
+	return c.JSON(http.StatusOK, customer)
+}
 
 func ReadCustomers(c echo.Context) error {
 	var customers []models.Customer
