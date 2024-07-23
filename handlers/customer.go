@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"digikala/database"
+	"digikala/DataBase"
 	"digikala/models"
 	"log"
 	"net/http"
@@ -33,7 +33,7 @@ func GenerateJWT(customer models.Customer) (string, error) {
 
 func AuthenticateCustomer(username, password string) (models.Customer, string, error) {
 	var customer models.Customer
-	result := database.DB.Where("username = ?", username).First(&customer)
+	result := DataBase.DB.Where("username = ?", username).First(&customer)
 	if result.Error != nil {
 		return customer, "", result.Error
 	}
@@ -65,7 +65,7 @@ func CreateCustomer(c echo.Context) error {
 	customer.Password = string(hashPass)
 	log.Println("the hash password is:", customer.Password)
 
-	result := database.DB.Create(customer)
+	result := DataBase.DB.Create(customer)
 	if result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, result.Error)
 	}
@@ -73,7 +73,7 @@ func CreateCustomer(c echo.Context) error {
 	return c.JSON(http.StatusCreated, customer)
 }
 
-func Login(c echo.Context) error {
+func LoginCustomer(c echo.Context) error {
 	credentials := new(models.Credentials)
 	if err := c.Bind(credentials); err != nil {
 		return err
@@ -94,7 +94,7 @@ func Login(c echo.Context) error {
 func ReadCustomer(c echo.Context) error {
 	customerID := c.Param("id")
 	var customer models.Customer
-	if result := database.DB.First(&customer, customerID); result.Error != nil {
+	if result := DataBase.DB.First(&customer, customerID); result.Error != nil {
 		return c.JSON(http.StatusNotFound, result.Error)
 	}
 
@@ -103,7 +103,7 @@ func ReadCustomer(c echo.Context) error {
 
 func ReadCustomers(c echo.Context) error {
 	var customers []models.Customer
-	result := database.DB.Find(&customers)
+	result := DataBase.DB.Find(&customers)
 	if result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, result.Error)
 	}
@@ -114,7 +114,7 @@ func ReadCustomers(c echo.Context) error {
 func UpdateCustomer(c echo.Context) error {
 	customerID := c.Param("id")
 	var customer models.Customer
-	if result := database.DB.First(&customer, customerID); result.Error != nil {
+	if result := DataBase.DB.First(&customer, customerID); result.Error != nil {
 		return c.JSON(http.StatusNotFound, result.Error)
 	}
 
@@ -143,7 +143,7 @@ func UpdateCustomer(c echo.Context) error {
 		customer.Password = string(hashPass)
 	}
 
-	if result := database.DB.Save(&customer); result.Error != nil {
+	if result := DataBase.DB.Save(&customer); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, result.Error)
 	}
 
@@ -154,11 +154,11 @@ func DeleteCustomer(c echo.Context) error {
 	customerID := c.Param("id")
 
 	var customer models.Customer
-	if result := database.DB.First(&customer, customerID); result.Error != nil {
+	if result := DataBase.DB.First(&customer, customerID); result.Error != nil {
 		return c.JSON(http.StatusNotFound, echo.Map{"message": "user not found"})
 	}
 
-	if result := database.DB.Delete(&customer); result.Error != nil {
+	if result := DataBase.DB.Delete(&customer); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, result.Error)
 	}
 

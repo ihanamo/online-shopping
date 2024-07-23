@@ -1,7 +1,7 @@
 package main
 
 import (
-	"digikala/database"
+	"digikala/DataBase"
 	"digikala/handlers"
 	"log"
 
@@ -12,14 +12,15 @@ func main() {
 	log.Println("main function called")
 	e := echo.New()
 
-	database.InitDB()
+	DataBase.InitDB()
 	log.Println("Connected to DataBase")
 
 	e.POST("/Register", handlers.CreateCustomer)
 	e.GET("/Customers", handlers.ReadCustomers)
+	e.GET("/Info/:id", handlers.ReadCustomer)
 	e.PUT("/UpdateCustomer/:id", handlers.UpdateCustomer)
 	e.DELETE("/DeleteCustomer/:id", handlers.DeleteCustomer)
-	// e.POST("Login", handlers.Login)
+	e.POST("Login", handlers.LoginCustomer)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
