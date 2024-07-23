@@ -5,13 +5,31 @@ import (
 	"digikala/models"
 	"log"
 	"net/http"
-	// "time"
+	"time"
 
-	// "github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
+var JWTKey = []byte("secret_key")
+
+func GenerateJWT(customer models.Customer) (string, error) {
+	claims := &jwt.MapClaims{
+		"username": customer.Username,
+		"phone":    customer.Phone,
+		"exp":      time.Now().Add(time.Hour * 24).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	tokenStr, err := token.SignedString(JWTKey)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenStr, err
+}
 
 func CreateCustomer(c echo.Context) error {
 	log.Println("Create Customer called")
@@ -34,7 +52,6 @@ func CreateCustomer(c echo.Context) error {
 	log.Println("user created")
 	return c.JSON(http.StatusCreated, customer)
 }
-
 
 func ReadCustomer(c echo.Context) error {
 	customerID := c.Param("id")
