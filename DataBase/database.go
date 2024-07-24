@@ -1,4 +1,4 @@
-package database
+package DataBase
 
 import (
 	"digikala/models"

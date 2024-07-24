@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"digikala/database"
+	"digikala/DataBase"
 	"digikala/models"
 	"log"
 	"net/http"
@@ -35,7 +35,7 @@ func GenerateJWT(customer models.Customer) (string, error) {
 		ExpiresAt: expirationTime,
 	}
 
-	result := database.DB.Create(&newToken)
+	result := DataBase.DB.Create(&newToken)
 	if result.Error != nil {
 		return "", result.Error
 	}
@@ -46,11 +46,11 @@ func GenerateJWT(customer models.Customer) (string, error) {
 func RevokeToken(c echo.Context) error {
 	tokenID := c.Param("id")
 	var token models.Token
-	if result := database.DB.First(&token, tokenID); result.Error != nil {
+	if result := DataBase.DB.First(&token, tokenID); result.Error != nil {
 		return c.JSON(http.StatusNotFound, echo.Map{"message": "Token not found"})
 	}
 
-	if result := database.DB.Delete(&token); result.Error != nil {
+	if result := DataBase.DB.Delete(&token); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, result.Error)
 	}
 
@@ -60,7 +60,7 @@ func RevokeToken(c echo.Context) error {
 func AuthenticateCustomer(username, password string) (models.Customer, string, error) {
 	var customer models.Customer
 	log.Println("Authenticating user:", username)
-	result := database.DB.Where("username = ?", username).First(&customer)
+	result := DataBase.DB.Where("username = ?", username).First(&customer)
 	if result.Error != nil {
 		log.Println("User not found:", result.Error)
 		return customer, "", echo.NewHTTPError(http.StatusNotFound, "User not found")
@@ -94,7 +94,7 @@ func CreateCustomer(c echo.Context) error {
 	customer.Password = string(hashPass)
 	log.Println("the hash password is:", customer.Password)
 
-	result := database.DB.Create(customer)
+	result := DataBase.DB.Create(customer)
 	if result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, result.Error)
 	}
@@ -136,7 +136,7 @@ func LoginCustomer(c echo.Context) error {
 func ReadCustomer(c echo.Context) error {
 	customerID := c.Param("id")
 	var customer models.Customer
-	if result := database.DB.First(&customer, customerID); result.Error != nil {
+	if result := DataBase.DB.First(&customer, customerID); result.Error != nil {
 		return c.JSON(http.StatusNotFound, result.Error)
 	}
 
@@ -145,7 +145,7 @@ func ReadCustomer(c echo.Context) error {
 
 func ReadCustomers(c echo.Context) error {
 	var customers []models.Customer
-	result := database.DB.Find(&customers)
+	result := DataBase.DB.Find(&customers)
 	if result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, result.Error)
 	}
@@ -156,7 +156,7 @@ func ReadCustomers(c echo.Context) error {
 func UpdateCustomer(c echo.Context) error {
 	customerID := c.Param("id")
 	var customer models.Customer
-	if result := database.DB.First(&customer, customerID); result.Error != nil {
+	if result := DataBase.DB.First(&customer, customerID); result.Error != nil {
 		return c.JSON(http.StatusNotFound, result.Error)
 	}
 
@@ -185,7 +185,7 @@ func UpdateCustomer(c echo.Context) error {
 		customer.Password = string(hashPass)
 	}
 
-	if result := database.DB.Save(&customer); result.Error != nil {
+	if result := DataBase.DB.Save(&customer); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, result.Error)
 	}
 
@@ -196,11 +196,11 @@ func DeleteCustomer(c echo.Context) error {
 	customerID := c.Param("id")
 
 	var customer models.Customer
-	if result := database.DB.First(&customer, customerID); result.Error != nil {
+	if result := DataBase.DB.First(&customer, customerID); result.Error != nil {
 		return c.JSON(http.StatusNotFound, echo.Map{"message": "user not found"})
 	}
 
-	if result := database.DB.Delete(&customer); result.Error != nil {
+	if result := DataBase.DB.Delete(&customer); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, result.Error)
 	}
 

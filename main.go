@@ -2,7 +2,7 @@ package main
 
 import (
 	"digikala/Middleware"
-	"digikala/database"
+	"digikala/DataBase"
 	"digikala/handlers"
 	"log"
 
@@ -13,7 +13,7 @@ func main() {
 	log.Println("main function called")
 	e := echo.New()
 
-	database.InitDB()
+	DataBase.InitDB()
 	log.Println("Connected to DataBase")
 
 	// Customer
