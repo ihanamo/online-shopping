@@ -22,6 +22,11 @@ func InitDB() {
 		log.Fatal("Failed to migrate db:", err)
 	}
 
+	err = DB.AutoMigrate(&models.Token{})
+	if err != nil {
+		log.Fatal("Failed to migrate db:", err)
+	}
+
 	err = DB.AutoMigrate(&models.Product{})
 	if err != nil {
 		log.Fatal("Failed to migrate db:", err)

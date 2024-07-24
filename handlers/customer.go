@@ -28,10 +28,34 @@ func GenerateJWT(customer models.Customer) (string, error) {
 		return "", err
 	}
 
+	expirationTime := time.Now().Add(24*time.Hour)
+	newToken := models.Token{
+		Token: tokenStr,
+		UserID: customer.ID,
+		ExpiresAt: expirationTime,
+	}
+
+	result := database.DB.Create(&newToken)
+	if result.Error != nil {
+		return "", result.Error
+	}
 
 	return tokenStr, nil
 }
 
+func RevokeToken(c echo.Context) error {
+	tokenID := c.Param("id")
+	var token models.Token
+	if result := database.DB.First(&token, tokenID); result.Error != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"message": "Token not found"})
+	}
+
+	if result := database.DB.Delete(&token); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, result.Error)
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "Token revoked successfully"})
+}
 
 func AuthenticateCustomer(username, password string) (models.Customer, string, error) {
 	var customer models.Customer
