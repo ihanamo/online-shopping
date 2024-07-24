@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"digikala/DataBase"
+	"digikala/database"
 	"digikala/models"
 	"net/http"
 
@@ -14,7 +14,7 @@ func AddProduct(c echo.Context) error {
 		return err
 	}
 
-	result := DataBase.DB.Create(product)
+	result := database.DB.Create(product)
 	if result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, result.Error)
 	}
@@ -24,7 +24,7 @@ func AddProduct(c echo.Context) error {
 
 func AllProducts(c echo.Context) error {
 	var products []models.Product
-	result := DataBase.DB.Find(&products)
+	result := database.DB.Find(&products)
 	if result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, result.Error)
 	}
@@ -36,7 +36,7 @@ func SpecialProduct(c echo.Context) error {
 	productType := c.Param("type")
 	var products models.Product
 
-	if result := DataBase.DB.Where("type=?", productType).Find(&products); result.Error != nil {
+	if result := database.DB.Where("type=?", productType).Find(&products); result.Error != nil {
 		return c.JSON(http.StatusNotFound, echo.Map{"message": "Products not found"})
 	}
 
@@ -46,7 +46,7 @@ func SpecialProduct(c echo.Context) error {
 func UpdateProduct(c echo.Context) error {
 	productID := c.Param("id")
 	var product models.Product
-	if result := DataBase.DB.First(&product, productID); result.Error != nil {
+	if result := database.DB.First(&product, productID); result.Error != nil {
 		return c.JSON(http.StatusNotFound, result.Error)
 	}
 
@@ -71,7 +71,7 @@ func UpdateProduct(c echo.Context) error {
 		product.Stock = updatedProduct.Stock
 	}
 
-	if result := DataBase.DB.Save(&product); result.Error != nil {
+	if result := database.DB.Save(&product); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, result.Error)
 	}
 
@@ -82,11 +82,11 @@ func DeleteProduct(c echo.Context) error {
 	productID := c.Param("id")
 
 	var product models.Product
-	if result := DataBase.DB.First(&product, productID); result.Error != nil {
+	if result := database.DB.First(&product, productID); result.Error != nil {
 		return c.JSON(http.StatusNotFound, echo.Map{"message": "product not found"})
 	}
 
-	if result := DataBase.DB.Delete(&product); result != nil {
+	if result := database.DB.Delete(&product); result != nil {
 		return c.JSON(http.StatusInternalServerError, result.Error)
 	}
 

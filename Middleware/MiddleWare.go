@@ -35,8 +35,17 @@ func ExtractClaims(next echo.HandlerFunc) echo.HandlerFunc {
 			return c.JSON(http.StatusUnauthorized, "Invalid JWT claims")
 		}
 
-		username := claims["username"].(string)
-		phone := claims["phone"].(string)
+		username, ok := claims["username"].(string)
+		if !ok {
+			log.Println("Invalid username in JWT claims")
+			return c.JSON(http.StatusUnauthorized, "Invalid JWT claims")
+		}
+
+		phone, ok := claims["phone"].(string)
+		if !ok {
+			log.Println("Invalid phone in JWT claims")
+			return c.JSON(http.StatusUnauthorized, "Invalid JWT claims")
+		}
 
 		log.Printf("Extracted username: %s, Phone; %s", username, phone)
 
