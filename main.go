@@ -1,8 +1,8 @@
 package main
 
 import (
-	"digikala/Middleware"
 	"digikala/DataBase"
+	"digikala/Middleware"
 	"digikala/handlers"
 	"log"
 
@@ -41,6 +41,5 @@ func main() {
 	e.GET("/AllProducts", handlers.AllProducts)
 	e.GET("SpecialProduct/:id", handlers.SpecialProduct)
 
-	
 	e.Logger.Fatal(e.Start(":8080"))
 }
