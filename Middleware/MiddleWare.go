@@ -1,6 +1,8 @@
 package Middleware
 
 import (
+	"digikala/DataBase"
+	"digikala/models"
 	"log"
 	"net/http"
 
@@ -54,4 +56,19 @@ func ExtractClaims(next echo.HandlerFunc) echo.HandlerFunc {
 
 		return next(c)
 	}
+}
+
+
+func RevokeToken(c echo.Context) error {
+	tokenID := c.Param("id")
+	var token models.Token
+	if result := DataBase.DB.First(&token, tokenID); result.Error != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"message": "Token not found"})
+	}
+
+	if result := DataBase.DB.Delete(&token); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, result.Error)
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "Token revoked successfully"})
 }

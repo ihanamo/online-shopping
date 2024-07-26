@@ -17,8 +17,8 @@ func main() {
 	log.Println("Connected to DataBase")
 
 	// Customer
-	e.POST("/Register", handlers.CreateCustomer)
-	e.POST("/Login", handlers.LoginCustomer)
+	e.POST("/RegisterCustomer", handlers.CreateCustomer)
+	e.POST("/LoginCustomer", handlers.LoginCustomer)
 
 	r := e.Group("")
 	r.Use(Middleware.JWTMiddleware())
@@ -30,11 +30,17 @@ func main() {
 	r.DELETE("/DeleteCustomer/:id", handlers.DeleteCustomer)
 
 	// Product
-	// e.POST("/AddProduct", handlers.AddProduct)
-	// e.PUT("/UpdateProduct/:id", handlers.UpdateProduct)
-	// e.GET("/AllProducts", handlers.AllProducts)
-	// e.GET("SpecialProduct/:id", handlers.SpecialProduct)
-	// e.DELETE("/DeleteProduct/:id", handlers.DeleteProduct)
+	e.POST("/RegisterManager", handlers.CreateManager)
+	e.POST("/LoginManager", handlers.LoginManager)
 
+	s := e.Group("")
+	s.POST("/AddProduct", handlers.AddProduct)
+	s.PUT("/UpdateProduct/:id", handlers.UpdateProduct)
+	s.DELETE("/DeleteProduct/:id", handlers.DeleteProduct)
+
+	e.GET("/AllProducts", handlers.AllProducts)
+	e.GET("SpecialProduct/:id", handlers.SpecialProduct)
+
+	
 	e.Logger.Fatal(e.Start(":8080"))
 }

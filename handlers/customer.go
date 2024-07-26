@@ -14,7 +14,7 @@ import (
 
 var JWTKey = []byte("secret_key")
 
-func GenerateJWT(customer models.Customer) (string, error) {
+func GenerateJWTCustomer(customer models.Customer) (string, error) {
 	claims := &jwt.MapClaims{
 		"username": customer.Username,
 		"phone":    customer.Phone,
@@ -43,19 +43,6 @@ func GenerateJWT(customer models.Customer) (string, error) {
 	return tokenStr, nil
 }
 
-func RevokeToken(c echo.Context) error {
-	tokenID := c.Param("id")
-	var token models.Token
-	if result := DataBase.DB.First(&token, tokenID); result.Error != nil {
-		return c.JSON(http.StatusNotFound, echo.Map{"message": "Token not found"})
-	}
-
-	if result := DataBase.DB.Delete(&token); result.Error != nil {
-		return c.JSON(http.StatusInternalServerError, result.Error)
-	}
-
-	return c.JSON(http.StatusOK, echo.Map{"message": "Token revoked successfully"})
-}
 
 func AuthenticateCustomer(username, password string) (models.Customer, string, error) {
 	var customer models.Customer
@@ -72,7 +59,7 @@ func AuthenticateCustomer(username, password string) (models.Customer, string, e
 		return customer, "", echo.NewHTTPError(http.StatusUnauthorized, "Invalid password")
 	}
 
-	token, err := GenerateJWT(customer)
+	token, err := GenerateJWTCustomer(customer)
 	if err != nil {
 		return customer, "", echo.NewHTTPError(http.StatusInternalServerError, "Failed to Generate Token")
 	}
@@ -100,7 +87,7 @@ func CreateCustomer(c echo.Context) error {
 	}
 	log.Println("user created")
 
-	token, err := GenerateJWT(*customer)
+	token, err := GenerateJWTCustomer(*customer)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"message":"Failed to generate token"})
 	}
