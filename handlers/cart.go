@@ -62,3 +62,52 @@ func AddtoCart(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, cart)
 }
+
+func DeleteFromCart(c echo.Context) error {
+	userToken, ok := c.Get("user").(*jwt.Token)
+	if !ok || userToken == nil {
+		return c.JSON(http.StatusUnauthorized, "Missing or malformed JWT")
+	}
+
+	claims, ok := userToken.Claims.(jwt.MapClaims)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, "Invalid JWT claims")
+	}
+
+	customerID, ok := claims["customer-id"].(float64)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, "Invalid JWT claims")
+	}
+
+	productID := c.Param("product_id")
+	var product models.Product
+	if result := DataBase.DB.First(&product, productID); result != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"message": "Product not found"})
+	}
+
+	var cart models.Cart
+	if result := DataBase.DB.Where("customer_id = ? AND is_payed = ?", uint(customerID)).First(&cart); result.Error != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"message": "Cart not found"})
+	}
+
+	var cartProduct models.CartProduct
+	if result := DataBase.DB.Where("cart_id = ? ANd product_id = ?", cart.ID, product.ID).First(&cartProduct); result.Error != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"message": "Product not found in cart"})
+	}
+
+	if result := DataBase.DB.Delete(&cartProduct); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, result.Error)
+	}
+
+	cart.Total -= product.Price * float64(cartProduct.Quantity)
+	if result := DataBase.DB.Save(&cart); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, result.Error)
+	}
+
+	product.Stock += cartProduct.Quantity
+	if result := DataBase.DB.Save(&product); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, result.Error)
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "Product removed from cart successfuly"})
+}
