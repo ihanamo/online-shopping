@@ -48,6 +48,7 @@ func main() {
 	r.POST("/Cart/Add/:product_id", handlers.AddtoCart)
 	r.DELETE("/Cart/Delete/:product_id", handlers.DeleteFromCart)
 	r.GET("/Cart", handlers.GetCart)
+	r.POST("/Cart/Pay", handlers.PayCart)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
