@@ -111,3 +111,27 @@ func DeleteFromCart(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, echo.Map{"message": "Product removed from cart successfuly"})
 }
+
+func GetCart(c echo.Context) error {
+	userToken, ok := c.Get("user").(*jwt.Token)
+	if !ok || userToken == nil {
+		return c.JSON(http.StatusUnauthorized, "Missing or malformed JWT")
+	}
+
+	claims, ok := userToken.Claims.(jwt.MapClaims)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, "Invalid JWT claims")
+	}
+
+	customerID, ok := claims["customer-id"].(float64)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, "Invalid JWT claims")
+	}
+
+	var cart models.Cart
+	if result := DataBase.DB.Where("customer_id = ? AND is_payed = ?", uint(customerID), false).Preload("Products").First(&cart); result.Error != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"message": "Cart not found"})
+	}
+
+	return c.JSON(http.StatusOK, cart)
+}

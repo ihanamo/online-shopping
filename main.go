@@ -37,15 +37,17 @@ func main() {
 	s.Use(Middleware.JWTMiddleware())
 	s.Use(Middleware.ExtractClaims)
 
-	s.POST("/AddProduct", handlers.AddProduct)
-	s.PUT("/UpdateProduct/:id", handlers.UpdateProduct)
-	s.DELETE("/DeleteProduct/:id", handlers.DeleteProduct)
+	s.POST("/Product/AddProduct", handlers.AddProduct)
+	s.PUT("/Product/UpdateProduct/:id", handlers.UpdateProduct)
+	s.DELETE("/Product/DeleteProduct/:id", handlers.DeleteProduct)
 
-	e.GET("/AllProducts", handlers.AllProducts)
-	e.GET("SpecialProduct/:type", handlers.SpecialProduct)
+	e.GET("/Product/AllProducts", handlers.AllProducts)
+	e.GET("/Product/SpecialProduct/:type", handlers.SpecialProduct)
 
 	// Cart
 	r.POST("/Cart/Add/:product_id", handlers.AddtoCart)
+	r.DELETE("/Cart/Delete/:product_id", handlers.DeleteFromCart)
+	r.GET("/Cart", handlers.GetCart)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
