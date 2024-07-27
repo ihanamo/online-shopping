@@ -4,6 +4,7 @@ import (
 	"digikala/DataBase"
 	"digikala/models"
 	"net/http"
+	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
@@ -164,8 +165,18 @@ func PayCart(c echo.Context) error {
 	paymentSuccessful := true
 
 	if paymentSuccessful {
+
 		cart.IsPayed = true
 		if result := DataBase.DB.Save(&cart); result.Error != nil {
+			return c.JSON(http.StatusInternalServerError, result.Error)
+		}
+
+		payment := models.Payment{
+			PaidAt: time.Now(),
+			Total: cart.Total,
+			CustomerID: cart.CustomerID,
+		}
+		if result := DataBase.DB.Create(&payment); result.Error!=nil{
 			return c.JSON(http.StatusInternalServerError, result.Error)
 		}
 

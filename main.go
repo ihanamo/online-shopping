@@ -17,21 +17,21 @@ func main() {
 	log.Println("Connected to DataBase")
 
 	// Customer
-	e.POST("/RegisterCustomer", handlers.CreateCustomer)
-	e.POST("/LoginCustomer", handlers.LoginCustomer)
+	e.POST("/Customer/RegisterCustomer", handlers.CreateCustomer)
+	e.POST("/Customer/LoginCustomer", handlers.LoginCustomer)
 
 	r := e.Group("")
 	r.Use(Middleware.JWTMiddleware())
 	r.Use(Middleware.ExtractClaims)
 
-	r.GET("/Customers", handlers.ReadCustomers)
-	r.GET("/CustomerInfo/:id", handlers.ReadCustomer)
-	r.PUT("/UpdateCustomer/:id", handlers.UpdateCustomer)
-	r.DELETE("/DeleteCustomer/:id", handlers.DeleteCustomer)
+	r.GET("/Customer/AllCustomers", handlers.ReadCustomers)
+	r.GET("/Customer/CustomerInfo/:id", handlers.ReadCustomer)
+	r.PUT("/Customer/UpdateCustomer/:id", handlers.UpdateCustomer)
+	r.DELETE("/Customer/DeleteCustomer/:id", handlers.DeleteCustomer)
 
 	// Product
-	e.POST("/RegisterManager", handlers.CreateManager)
-	e.POST("/LoginManager", handlers.LoginManager)
+	e.POST("/Manager/RegisterManager", handlers.CreateManager)
+	e.POST("/Manager/LoginManager", handlers.LoginManager)
 
 	s := e.Group("")
 	s.Use(Middleware.JWTMiddleware())
@@ -46,9 +46,13 @@ func main() {
 
 	// Cart
 	r.POST("/Cart/Add/:product_id", handlers.AddtoCart)
-	r.DELETE("/Cart/Delete/:product_id", handlers.DeleteFromCart)
+	r.DELETE("/Cart/DeleteProduct/:product_id", handlers.DeleteFromCart)
 	r.GET("/Cart", handlers.GetCart)
 	r.POST("/Cart/Pay", handlers.PayCart)
+	r.DELETE("/Cart/DeleteCart", handlers.DeleteCart)
+
+	// Payment
+	r.GET("/Payment", handlers.GetAllPayments)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
