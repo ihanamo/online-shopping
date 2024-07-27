@@ -36,7 +36,7 @@ func SpecialProduct(c echo.Context) error {
 	productType := c.Param("type")
 	var products models.Product
 
-	if result := DataBase.DB.Where("type=?", productType).Find(&products); result.Error != nil {
+	if result := DataBase.DB.Where("type = ?", productType).Find(&products); result.Error != nil {
 		return c.JSON(http.StatusNotFound, echo.Map{"message": "Products not found"})
 	}
 

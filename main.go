@@ -34,12 +34,18 @@ func main() {
 	e.POST("/LoginManager", handlers.LoginManager)
 
 	s := e.Group("")
+	s.Use(Middleware.JWTMiddleware())
+	s.Use(Middleware.ExtractClaims)
+
 	s.POST("/AddProduct", handlers.AddProduct)
 	s.PUT("/UpdateProduct/:id", handlers.UpdateProduct)
 	s.DELETE("/DeleteProduct/:id", handlers.DeleteProduct)
 
 	e.GET("/AllProducts", handlers.AllProducts)
-	e.GET("SpecialProduct/:id", handlers.SpecialProduct)
+	e.GET("SpecialProduct/:type", handlers.SpecialProduct)
+
+	// Cart
+	r.POST("/Cart/Add/:product_id", handlers.AddtoCart)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

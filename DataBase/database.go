@@ -31,4 +31,9 @@ func InitDB() {
 	if err != nil {
 		log.Fatal("Failed to migrate db:", err)
 	}
+
+	err = DB.AutoMigrate(&models.Cart{})
+	if err != nil {
+		log.Fatal("Failed to migrate db:", err)
+	}
 }
