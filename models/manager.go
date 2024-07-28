@@ -10,6 +10,7 @@ type Manager struct {
 	ID       uint   `json:"manager-id" gorm:"primaryKey;autoIncrement"`
 	Name     string `json:"name" gorm:"type:varchar(100);not null"`
 	Username string `json:"username" gorm:"type:varchar(100);not null"`
+	Phone    string `json:"phone" gorm:"type:varchar(100);not null"`
 	Password string `json:"password" gorm:"type:varchar(255);not null"`
 }
 

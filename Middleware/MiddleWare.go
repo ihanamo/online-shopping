@@ -1,8 +1,6 @@
 package Middleware
 
 import (
-	"digikala/DataBase"
-	"digikala/models"
 	"log"
 	"net/http"
 
@@ -13,7 +11,6 @@ import (
 
 var JWTKey = []byte("secret_key")
 
-
 func JWTMiddleware() echo.MiddlewareFunc {
 	config := echojwt.Config{
 		SigningKey: JWTKey,
@@ -23,7 +20,7 @@ func JWTMiddleware() echo.MiddlewareFunc {
 	return echojwt.WithConfig(config)
 }
 
-func ExtractClaims(next echo.HandlerFunc) echo.HandlerFunc {
+func ExtractClaimsCustomer(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user, ok := c.Get("user").(*jwt.Token)
 		if !ok || user == nil {
@@ -33,7 +30,13 @@ func ExtractClaims(next echo.HandlerFunc) echo.HandlerFunc {
 
 		claims, ok := user.Claims.(jwt.MapClaims)
 		if !ok {
-			log.Println("Invalid JWT claim")
+			log.Println("Invalid JWT claims structure")
+			return c.JSON(http.StatusUnauthorized, "Invalid JWT claims structure")
+		}
+
+		customerID, ok := claims["customer-id"].(float64)
+		if !ok {
+			log.Println("Invalid customer-id in JWT claims")
 			return c.JSON(http.StatusUnauthorized, "Invalid JWT claims")
 		}
 
@@ -43,32 +46,46 @@ func ExtractClaims(next echo.HandlerFunc) echo.HandlerFunc {
 			return c.JSON(http.StatusUnauthorized, "Invalid JWT claims")
 		}
 
-		phone, ok := claims["phone"].(string)
-		if !ok {
-			log.Println("Invalid phone in JWT claims")
-			return c.JSON(http.StatusUnauthorized, "Invalid JWT claims")
-		}
+		log.Printf("Extracted customer-id: %f, username: %s", customerID, username)
 
-		log.Printf("Extracted username: %s, Phone; %s", username, phone)
-
+		c.Set("customer-id", uint(customerID))
 		c.Set("username", username)
-		c.Set("phone", phone)
 
 		return next(c)
 	}
 }
 
+func ExtractClaimsManager(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user, ok := c.Get("user").(*jwt.Token)
+		if !ok || user == nil {
+			log.Println("JWT token missing or malformed")
+			return c.JSON(http.StatusUnauthorized, "Missing or malformed JWT")
+		}
 
-func RevokeToken(c echo.Context) error {
-	tokenID := c.Param("id")
-	var token models.Token
-	if result := DataBase.DB.First(&token, tokenID); result.Error != nil {
-		return c.JSON(http.StatusNotFound, echo.Map{"message": "Token not found"})
+		claims, ok := user.Claims.(jwt.MapClaims)
+		if !ok {
+			log.Println("Invalid JWT claims structure")
+			return c.JSON(http.StatusUnauthorized, "Invalid JWT claims structure")
+		}
+
+		managerID, ok := claims["manager-id"].(float64)
+		if !ok {
+			log.Println("Invalid manager-id in JWT claims")
+			return c.JSON(http.StatusUnauthorized, "Invalid JWT claims")
+		}
+
+		username, ok := claims["username"].(string)
+		if !ok {
+			log.Println("Invalid username in JWT claims")
+			return c.JSON(http.StatusUnauthorized, "Invalid JWT claims")
+		}
+
+		log.Printf("Extracted manager-id: %f, username: %s", managerID, username)
+
+		c.Set("manager-id", uint(managerID))
+		c.Set("username", username)
+
+		return next(c)
 	}
-
-	if result := DataBase.DB.Delete(&token); result.Error != nil {
-		return c.JSON(http.StatusInternalServerError, result.Error)
-	}
-
-	return c.JSON(http.StatusOK, echo.Map{"message": "Token revoked successfully"})
 }

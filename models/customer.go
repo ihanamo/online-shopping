@@ -1,8 +1,6 @@
 package models
 
 import (
-	"time"
-
 	"gorm.io/gorm"
 )
 
@@ -19,11 +17,4 @@ type Customer struct {
 type Credentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-}
-
-type Token struct {
-	gorm.Model
-	Token     string    `json:"token" gorm:"type:text;not null"`
-	UserID    uint      `json:"userID" gorm:"not null"`
-	ExpiresAt time.Time `json:"expiresAt" gorm:"not null"`
 }

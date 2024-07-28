@@ -14,8 +14,9 @@ import (
 
 func GenerateJWTManager(manager models.Manager) (string, error) {
 	claims := &jwt.MapClaims{
-		"username": manager.Username,
-		"exp":      time.Now().Add(time.Hour * 24).Unix(),
+		"manager-id": manager.ID,
+		"username":   manager.Username,
+		"exp":        time.Now().Add(time.Hour * 24).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -23,18 +24,6 @@ func GenerateJWTManager(manager models.Manager) (string, error) {
 	tokenStr, err := token.SignedString(JWTKey)
 	if err != nil {
 		return "", err
-	}
-
-	expirationTime := time.Now().Add(24 * time.Hour)
-	newToken := models.Token{
-		Token:     tokenStr,
-		UserID:    manager.ID,
-		ExpiresAt: expirationTime,
-	}
-
-	result := DataBase.DB.Create(&newToken)
-	if result.Error != nil {
-		return "", result.Error
 	}
 
 	return tokenStr, nil
@@ -151,7 +140,6 @@ func UpdateManagers(c echo.Context) error {
 	if updatedManager.Name != "" {
 		manager.Name = updatedManager.Name
 	}
-
 
 	if updatedManager.Password != "" {
 		hashPass, err := bcrypt.GenerateFromPassword([]byte(updatedManager.Password), bcrypt.DefaultCost)

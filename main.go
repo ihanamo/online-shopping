@@ -22,7 +22,7 @@ func main() {
 
 	r := e.Group("")
 	r.Use(Middleware.JWTMiddleware())
-	r.Use(Middleware.ExtractClaims)
+	r.Use(Middleware.ExtractClaimsCustomer)
 
 	r.GET("/Customer/AllCustomers", handlers.ReadCustomers)
 	r.GET("/Customer/CustomerInfo/:id", handlers.ReadCustomer)
@@ -35,7 +35,7 @@ func main() {
 
 	s := e.Group("")
 	s.Use(Middleware.JWTMiddleware())
-	s.Use(Middleware.ExtractClaims)
+	s.Use(Middleware.ExtractClaimsManager)
 
 	s.POST("/Product/AddProduct", handlers.AddProduct)
 	s.PUT("/Product/UpdateProduct/:id", handlers.UpdateProduct)
@@ -45,8 +45,8 @@ func main() {
 	e.GET("/Product/SpecialProduct/:type", handlers.SpecialProduct)
 
 	// Cart
-	r.POST("/Cart/Add/:product_id", handlers.AddtoCart)
-	r.DELETE("/Cart/DeleteProduct/:product_id", handlers.DeleteFromCart)
+	r.POST("/Cart/Add/:id", handlers.AddtoCart)
+	r.DELETE("/Cart/DeleteProduct/:id", handlers.DeleteFromCart)
 	r.GET("/Cart", handlers.GetCart)
 	r.POST("/Cart/Pay", handlers.PayCart)
 	r.DELETE("/Cart/DeleteCart", handlers.DeleteCart)
@@ -55,4 +55,5 @@ func main() {
 	r.GET("/Payment", handlers.GetAllPayments)
 
 	e.Logger.Fatal(e.Start(":8080"))
+
 }

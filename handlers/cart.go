@@ -3,7 +3,9 @@ package handlers
 import (
 	"digikala/DataBase"
 	"digikala/models"
+	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -18,17 +20,22 @@ func AddtoCart(c echo.Context) error {
 
 	claims, ok := userToken.Claims.(jwt.MapClaims)
 	if !ok {
+		log.Println("Invalid JWT claims structure")
 		return c.JSON(http.StatusUnauthorized, "Invalid JWT claims")
 	}
 
 	customerID, ok := claims["customer-id"].(float64)
 	if !ok {
+		log.Println("Invalid customer-id in JWT claims")
 		return c.JSON(http.StatusUnauthorized, "Invalid JWT claims")
 	}
 
-	productID := c.Param("product_id")
+	productID := c.Param("id")
 	var product models.Product
-	if result := DataBase.DB.First(&product, productID); result != nil {
+	if result := DataBase.DB.First(&product, productID); result.Error != nil {
+		log.Println(productID)
+		log.Println("Error finding product:", result.Error)
+		log.Println("Product found", product)
 		return c.JSON(http.StatusNotFound, echo.Map{"message": "Product not found"})
 	}
 
@@ -46,15 +53,30 @@ func AddtoCart(c echo.Context) error {
 		DataBase.DB.Create(&cart)
 	}
 
-	cartProduct := models.CartProduct{
-		CartID:    cart.ID,
-		ProductID: product.ID,
-		Quantity:  1,
+	var cartProduct models.CartProduct
+	if result := DataBase.DB.Where("cart_id = ? AND product_id = ?", cart.ID, product.ID).First(&cartProduct); result.Error != nil {
+		cartProduct = models.CartProduct{
+			CartID:    cart.ID,
+			ProductID: product.ID,
+			Quantity:  1,
+		}
+		if result := DataBase.DB.Create(&cartProduct); result.Error != nil {
+			log.Println("Error creating CartProduct:", result.Error)
+			return c.JSON(http.StatusInternalServerError, echo.Map{"message": "Failed to add product to cart"})
+		}
+	} else {
+		cartProduct.Quantity += 1
+		if result := DataBase.DB.Save(&cartProduct); result.Error != nil {
+			log.Println("Error updating CartProduct:", result.Error)
+			return c.JSON(http.StatusInternalServerError, echo.Map{"message": "Failed to update cart product"})
+		}
 	}
-	DataBase.DB.Create(&cartProduct)
 
 	cart.Total += product.Price
-	DataBase.DB.Save(&cart)
+	if result := DataBase.DB.Save(&cart); result.Error != nil {
+		log.Println("Error updating Cart:", result.Error)
+		return c.JSON(http.StatusInternalServerError, echo.Map{"message": "Failed to update cart"})
+	}
 
 	product.Stock -= 1
 	if result := DataBase.DB.Save(&product); result.Error != nil {
@@ -72,15 +94,22 @@ func DeleteFromCart(c echo.Context) error {
 
 	claims, ok := userToken.Claims.(jwt.MapClaims)
 	if !ok {
+		log.Println("Invalid JWT claims structure")
 		return c.JSON(http.StatusUnauthorized, "Invalid JWT claims")
 	}
 
 	customerID, ok := claims["customer-id"].(float64)
 	if !ok {
+		log.Println("Invalid customer-id in JWT claims")
 		return c.JSON(http.StatusUnauthorized, "Invalid JWT claims")
 	}
 
-	productID := c.Param("product_id")
+	productIDParam := c.Param("id")
+	productID, err := strconv.ParseUint(productIDParam, 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "Invalid product ID")
+	}
+
 	var product models.Product
 	if result := DataBase.DB.First(&product, productID); result != nil {
 		return c.JSON(http.StatusNotFound, echo.Map{"message": "Product not found"})
@@ -172,11 +201,11 @@ func PayCart(c echo.Context) error {
 		}
 
 		payment := models.Payment{
-			PaidAt: time.Now(),
-			Total: cart.Total,
+			PaidAt:     time.Now(),
+			Total:      cart.Total,
 			CustomerID: cart.CustomerID,
 		}
-		if result := DataBase.DB.Create(&payment); result.Error!=nil{
+		if result := DataBase.DB.Create(&payment); result.Error != nil {
 			return c.JSON(http.StatusInternalServerError, result.Error)
 		}
 

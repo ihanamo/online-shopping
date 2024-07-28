@@ -16,9 +16,9 @@ var JWTKey = []byte("secret_key")
 
 func GenerateJWTCustomer(customer models.Customer) (string, error) {
 	claims := &jwt.MapClaims{
-		"username": customer.Username,
-		"phone":    customer.Phone,
-		"exp":      time.Now().Add(time.Hour * 24).Unix(),
+		"customer-id": customer.ID,
+		"username":    customer.Username,
+		"exp":         time.Now().Add(time.Hour * 24).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -28,21 +28,8 @@ func GenerateJWTCustomer(customer models.Customer) (string, error) {
 		return "", err
 	}
 
-	expirationTime := time.Now().Add(24*time.Hour)
-	newToken := models.Token{
-		Token: tokenStr,
-		UserID: customer.ID,
-		ExpiresAt: expirationTime,
-	}
-
-	result := DataBase.DB.Create(&newToken)
-	if result.Error != nil {
-		return "", result.Error
-	}
-
 	return tokenStr, nil
 }
-
 
 func AuthenticateCustomer(username, password string) (models.Customer, string, error) {
 	var customer models.Customer
@@ -89,13 +76,13 @@ func CreateCustomer(c echo.Context) error {
 
 	token, err := GenerateJWTCustomer(*customer)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, echo.Map{"message":"Failed to generate token"})
+		return c.JSON(http.StatusInternalServerError, echo.Map{"message": "Failed to generate token"})
 	}
 
 	return c.JSON(http.StatusCreated, echo.Map{
-		"message":"User created successfuly",
-		"user": customer,
-		"token": token,
+		"message": "User created successfuly",
+		"user":    customer,
+		"token":   token,
 	})
 }
 
@@ -103,7 +90,7 @@ func LoginCustomer(c echo.Context) error {
 	credentials := new(models.Credentials)
 	if err := c.Bind(credentials); err != nil {
 		log.Println("Failed to bind credentials:", err)
-		return c.JSON(http.StatusBadRequest, echo.Map{"message":"Invalid request data"})
+		return c.JSON(http.StatusBadRequest, echo.Map{"message": "Invalid request data"})
 	}
 
 	log.Println("Credentials received:", credentials)
